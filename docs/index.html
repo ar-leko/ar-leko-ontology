@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AR-LEKO — Ontología del Conocimiento Jurídico Argentino</title>
+  <meta name="description" content="AR-LEKO es una ontología OWL 2 para representar normas jurídicas argentinas como datos enlazados.">
+  <link rel="canonical" href="https://w3id.org/arleko">
+  <link rel="alternate" type="text/turtle" href="ontology/arleko.ttl" title="AR-LEKO en Turtle">
+  <link rel="alternate" type="application/rdf+xml" href="ontology/arleko.rdf" title="AR-LEKO en RDF/XML">
+  <link rel="alternate" type="application/ld+json" href="ontology/arleko.jsonld" title="AR-LEKO en JSON-LD">
+  <link rel="alternate" type="application/n-triples" href="ontology/arleko.nt" title="AR-LEKO en N-Triples">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --line: #d9d1c4;
+      --paper: #f7f3eb;
+      --band: #243044;
+      --band-ink: #f4efe6;
+      --accent: #8c3b2a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+    }
+    header {
+      background: var(--band);
+      color: var(--band-ink);
+      padding: 2.5rem 1.25rem 2rem;
+    }
+    main, header, footer { max-width: 46rem; margin: 0 auto; }
+    main, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+    h1 { font-weight: 600; font-size: 2rem; letter-spacing: 0.01em; margin: 0 0 0.35rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 0.6rem; }
+    .kicker { margin: 0; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.78rem; color: #d7c4a4; }
+    .lede { font-size: 1.12rem; }
+    a { color: var(--accent); }
+    header a { color: #f0d7a8; }
+    code, .iri { font-family: "IBM Plex Mono", "Source Code Pro", ui-monospace, monospace; font-size: 0.92em; }
+    table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; }
+    th, td { text-align: left; vertical-align: top; padding: 0.45rem 0.6rem 0.45rem 0; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; width: 34%; }
+    ul { padding-left: 1.2rem; }
+    .downloads a { display: inline-block; margin: 0 0.8rem 0.4rem 0; }
+    footer { color: var(--muted); padding-bottom: 2.5rem; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Ontología OWL 2 · versión 1.3.0</p>
+    <h1>AR-LEKO</h1>
+    <p>Ontología del Conocimiento Jurídico Argentino<br>Argentine Legal Knowledge Ontology</p>
+  </header>
+  <main>
+    <p class="lede">AR-LEKO representa normas jurídicas argentinas como datos enlazados: su identidad, su estructura, sus versiones en el tiempo, sus modificaciones, sus referencias y el contexto institucional y territorial en el que se dictan.</p>
+    <p>Es un modelo conceptual. No contiene un corpus oficial de legislación, no certifica la vigencia de una norma y no sustituye la interpretación jurídica.</p>
+
+    <h2>Identificadores</h2>
+    <table>
+      <tr><th>IRI de la ontología</th><td><a href="https://w3id.org/arleko">https://w3id.org/arleko</a></td></tr>
+      <tr><th>IRI de esta versión</th><td><a href="https://w3id.org/arleko/1.3.0">https://w3id.org/arleko/1.3.0</a></td></tr>
+      <tr><th>Términos</th><td class="iri">https://w3id.org/arleko#</td></tr>
+      <tr><th>Vocabularios</th><td class="iri">https://w3id.org/arleko/vocab#</td></tr>
+    </table>
+    <p>Los términos usan un namespace con fragmento. <span class="iri">https://w3id.org/arleko#Norma</span> identifica la clase; el documento que la define es <span class="iri">https://w3id.org/arleko</span>. Los conceptos controlados, como <span class="iri">https://w3id.org/arleko/vocab#TipoNorma-Ley</span>, están en el mismo documento.</p>
+
+    <h2>Representaciones</h2>
+    <p class="downloads">
+      <a href="ontology/arleko.ttl" type="text/turtle">Turtle</a>
+      <a href="ontology/arleko.rdf" type="application/rdf+xml">RDF/XML</a>
+      <a href="ontology/arleko.jsonld" type="application/ld+json">JSON-LD</a>
+      <a href="ontology/arleko.nt" type="application/n-triples">N-Triples</a>
+      <a href="1.3.0/">Versión 1.3.0</a>
+    </p>
+    <p>Un cliente que pida <span class="iri">https://w3id.org/arleko</span> con <span class="iri">Accept: text/turtle</span>, <span class="iri">application/ld+json</span>, <span class="iri">application/rdf+xml</span> o <span class="iri">application/n-triples</span> recibe esa serialización. El resto de los clientes recibe esta página. La respuesta es <span class="iri">303 See Other</span>.</p>
+
+    <h2>Qué modela</h2>
+    <ul>
+      <li><strong>Obras jurídicas:</strong> normas, unidades normativas, versiones y versiones consolidadas.</li>
+      <li><strong>Cambios y citas:</strong> actos modificatorios y referencias cruzadas.</li>
+      <li><strong>Contexto:</strong> órganos, jurisdicción, unidad territorial, sujeto regulado y edición del boletín oficial.</li>
+      <li><strong>Estado:</strong> vigencia, aplicación y modificación son tres dimensiones independientes.</li>
+    </ul>
+    <p>Para una ley se distinguen <span class="iri">sancionadaPor</span>, <span class="iri">promulgadaPor</span> y la publicación. <span class="iri">emitidaPor</span> se usa cuando una autoridad dicta el acto, por ejemplo una resolución administrativa.</p>
+    <p>Castellano es el idioma principal. Las clases, propiedades y conceptos tienen etiquetas en inglés y en portugués. El modelo reutiliza IRIs de SKOS y de ELI sin importar esas ontologías completas.</p>
+
+    <h2>Licencia</h2>
+    <p>AR-LEKO 1.3.0 se publica bajo <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>. Podés compartirla y adaptarla; tenés que atribuir la autoría.</p>
+    <p>Repositorio: <a href="https://github.com/ar-leko/ar-leko-ontology">github.com/ar-leko/ar-leko-ontology</a>. Mantenido por <a href="https://github.com/ar-leko">@ar-leko</a>.</p>
+  </main>
+  <footer>
+    <p>AR-LEKO no es una publicación del W3C. El identificador <span class="iri">w3id.org</span> es un servicio de redirección de la Permanent Identifier Community Group.</p>
+  </footer>
+</body>
+</html>

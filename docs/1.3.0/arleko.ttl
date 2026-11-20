@@ -1,0 +1,1389 @@
+@prefix arleko:  <https://w3id.org/arleko#> .
+@prefix arlekov: <https://w3id.org/arleko/vocab#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix eli:     <http://data.europa.eu/eli/ontology#> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+
+# =====================================================================
+# 0. ENCABEZADO DE LA ONTOLOGÍA
+# IRI de la ontología:  https://w3id.org/arleko
+# IRI de esta versión:  https://w3id.org/arleko/1.3.0
+# Namespace de términos: https://w3id.org/arleko#
+# Namespace de vocabularios: https://w3id.org/arleko/vocab#
+#
+# w3id.org no aloja este archivo: redirige esos IRI a las representaciones
+# publicadas con este repositorio. La redirección queda definida en
+# publication/w3id/ids/arleko/.htaccess y solo resuelve después de que
+# el pull request a perma-id/w3id.org esté fusionado.
+# =====================================================================
+
+<https://w3id.org/arleko> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/arleko/1.3.0> ;
+    owl:versionInfo "1.3.0" ;
+    dcterms:title "AR-LEKO - Ontología del Conocimiento Jurídico Argentino"@es ;
+    dcterms:title "AR-LEKO - Argentine Legal Knowledge Ontology"@en ;
+    dcterms:title "AR-LEKO - Ontologia do Conhecimento Jurídico Argentino"@pt ;
+    dcterms:description "Ontología OWL 2 para representar normas jurídicas argentinas, su estructura, sus versiones temporales, sus modificaciones y su contexto institucional y territorial."@es ;
+    dcterms:description "OWL 2 ontology for Argentine legal norms, their structure, temporal versions, amendments, and institutional and territorial context."@en ;
+    dcterms:created "2026-11-20"^^xsd:date ;
+    dcterms:modified "2026-11-20"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:creator <https://github.com/ar-leko> ;
+    vann:preferredNamespacePrefix "arleko" ;
+    vann:preferredNamespaceUri "https://w3id.org/arleko#" ;
+    rdfs:comment """AR-LEKO (Argentine Legal Knowledge Ontology) es una ontología OWL 2 para representar
+normas jurídicas argentinas de cualquier nivel y de cualquier organismo emisor.
+
+CAMBIOS v1.3.0:
+- Etiquetas en portugués (@pt) para todas las clases, propiedades y conceptos.
+- Esquema restrictivo de unidades territoriales (arlekov:EsquemaUnidadTerritorial) que incluye
+  departamentos/partidos y ámbitos marítimos.
+- Separación entre estado de vigencia y estado de modificación para evitar tratar
+  "vigente" y "modificada" como estados mutuamente excluyentes.
+- Se mantienen las distinciones entre sancionadaPor, promulgadaPor y emitidaPor.
+- Se corrige la separación conceptual entre jurisdicción y unidad territorial.
+- Se aclara que Alta Mar es un espacio marítimo, no un espacio bajo soberanía argentina.
+
+IDIOMAS: castellano (@es) primario, inglés (@en) y portugués (@pt) para interoperabilidad.
+"""@es .
+
+# =====================================================================
+# 1. VOCABULARIOS EXTERNOS
+# =====================================================================
+
+# AR-LEKO reutiliza términos publicados por SKOS y ELI mediante sus IRIs
+# canónicas. No redeclara localmente esas clases ni propiedades, ni importa
+# automáticamente sus axiomas. Esto evita crear definiciones locales que
+# puedan divergir de las especificaciones originales.
+# SKOS: https://www.w3.org/2004/02/skos/core#
+# ELI:  http://data.europa.eu/eli/ontology#
+
+# =====================================================================
+# 2. CLASES
+# =====================================================================
+
+arleko:ObraJuridica a owl:Class ;
+    rdfs:label "Obra jurídica"@es ;
+    rdfs:label "Legal work"@en ;
+    rdfs:label "Obra jurídica"@pt ;
+    rdfs:comment "Superclase abstracta de las identidades estables que pueden ser modificadas, derogadas, referenciadas o versionadas."@es .
+
+arleko:Norma a owl:Class ;
+    rdfs:subClassOf arleko:ObraJuridica, eli:LegalResource ,
+        [ a owl:Restriction ; owl:onProperty arleko:tipoNorma ; owl:someValuesFrom skos:Concept ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:jurisdiccion ; owl:someValuesFrom arleko:Jurisdiccion ] ;
+    rdfs:label "Norma"@es ;
+    rdfs:label "Norm"@en ;
+    rdfs:label "Norma"@pt ;
+    rdfs:comment "Instrumento jurídico como obra abstracta: Constitución, ley, código, decreto, resolución general, circular, comunicación, ordenanza. Para leyes, usar sancionadaPor (Congreso) y promulgadaPor (Ejecutivo); para actos administrativos, emitidaPor."@es .
+
+arleko:UnidadNormativa a owl:Class ;
+    rdfs:subClassOf arleko:ObraJuridica, eli:LegalResourceSubdivision ,
+        [ a owl:Restriction ; owl:onProperty arleko:esHijoDe ; owl:someValuesFrom arleko:ObraJuridica ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:perteneceANorma ; owl:someValuesFrom arleko:Norma ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:tipoNivel ; owl:someValuesFrom skos:Concept ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:tieneVersion ; owl:someValuesFrom arleko:Version ] ;
+    rdfs:label "Unidad normativa"@es ;
+    rdfs:label "Normative unit"@en ;
+    rdfs:label "Unidade normativa"@pt ;
+    rdfs:comment "Cualquier subdivisión estructural de una Norma (libro, título, capítulo, artículo, inciso, anexo)."@es .
+
+arleko:Version a owl:Class ;
+    rdfs:subClassOf eli:LegalExpression ,
+        [ a owl:Restriction ; owl:onProperty arleko:esVersionDe ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass arleko:ObraJuridica ] ;
+    rdfs:label "Versión"@es ;
+    rdfs:label "Version"@en ;
+    rdfs:label "Versão"@pt ;
+    rdfs:comment "Expresión de una ObraJuridica vigente en un intervalo [fechaDesde, fechaHasta)."@es .
+
+arleko:VersionConsolidada a owl:Class ;
+    rdfs:subClassOf arleko:Version ;
+    rdfs:label "Versión consolidada"@es ;
+    rdfs:label "Consolidated version"@en ;
+    rdfs:label "Versão consolidada"@pt .
+
+arleko:ActoModificatorio a owl:Class ;
+    rdfs:subClassOf
+        [ a owl:Restriction ; owl:onProperty arleko:obraActuante ; owl:someValuesFrom arleko:ObraJuridica ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:obraDestino ; owl:someValuesFrom arleko:ObraJuridica ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:tipoModificacion ; owl:someValuesFrom skos:Concept ] ;
+    rdfs:label "Acto modificatorio"@es ;
+    rdfs:label "Modification act"@en ;
+    rdfs:label "Ato modificatório"@pt .
+
+arleko:Referencia a owl:Class ;
+    rdfs:subClassOf
+        [ a owl:Restriction ; owl:onProperty arleko:fuenteReferencia ; owl:someValuesFrom arleko:ObraJuridica ] ,
+        [ a owl:Restriction ; owl:onProperty arleko:tipoReferencia ; owl:someValuesFrom skos:Concept ] ;
+    rdfs:label "Referencia"@es ;
+    rdfs:label "Reference"@en ;
+    rdfs:label "Referência"@pt .
+
+arleko:EdicionBoletinOficial a owl:Class ;
+    rdfs:label "Edición del Boletín Oficial"@es ;
+    rdfs:label "Official Gazette issue"@en ;
+    rdfs:label "Edição do Boletim Oficial"@pt .
+
+arleko:OrganoEmisor a owl:Class ;
+    rdfs:label "Órgano emisor"@es ;
+    rdfs:label "Issuing body"@en ;
+    rdfs:label "Órgão emissor"@pt ;
+    rdfs:comment "Autoridad que dicta o emite una norma. Para actos legislativos (leyes), el Congreso/Legislatura sanciona; el Ejecutivo promulga. Para actos administrativos (resoluciones, comunicaciones), el organismo emite."@es .
+
+arleko:Jurisdiccion a owl:Class ;
+    rdfs:label "Jurisdicción"@es ;
+    rdfs:label "Jurisdiction"@en ;
+    rdfs:label "Jurisdição"@pt ;
+    rdfs:comment "Orden jurídico territorial: Nación, provincia, CABA, municipio."@es .
+
+arleko:SujetoRegulado a owl:Class ;
+    rdfs:label "Sujeto regulado"@es ;
+    rdfs:label "Regulated subject"@en ;
+    rdfs:label "Sujeito regulado"@pt ;
+    rdfs:comment "Destinatario de una norma: entidad financiera, contribuyente, sociedad, emisor de valores."@es .
+
+arleko:UnidadTerritorial a owl:Class ;
+    rdfs:label "Unidad territorial"@es ;
+    rdfs:label "Territorial unit"@en ;
+    rdfs:label "Unidade territorial"@pt ;
+    rdfs:comment "División del territorio argentino con fines político-administrativos o judiciales. Su tipo se especifica con arleko:tipoUnidadTerritorial (lista restrictiva)."@es .
+
+[] a owl:AllDisjointClasses ;
+    owl:members ( arleko:Norma arleko:UnidadNormativa arleko:Version arleko:ActoModificatorio
+                  arleko:Referencia arleko:EdicionBoletinOficial arleko:OrganoEmisor
+                  arleko:SujetoRegulado ) .
+
+# Jurisdiccion y UnidadTerritorial no se declaran disjuntas: una misma entidad
+# (por ejemplo, una provincia) puede describirse como unidad territorial y como
+# jurisdicción. Las clases representan aspectos conceptuales distintos.
+
+# =====================================================================
+# 3. PROPIEDADES DE OBJETO
+# =====================================================================
+
+# ---- 3.1 Estructura ---------------------------------------------------
+
+arleko:esParteDe a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf eli:is_part_of ;
+    owl:inverseOf arleko:tieneParte ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "es parte de"@es ; rdfs:label "is part of"@en ; rdfs:label "é parte de"@pt .
+
+arleko:tieneParte a owl:ObjectProperty ;
+    rdfs:subPropertyOf eli:has_part ;
+    rdfs:label "tiene parte"@es ; rdfs:label "has part"@en ; rdfs:label "tem parte"@pt .
+
+arleko:esHijoDe a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf arleko:esParteDe ;
+    owl:inverseOf arleko:tieneHijo ;
+    rdfs:domain arleko:UnidadNormativa ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "es hijo de"@es ; rdfs:label "is child of"@en ; rdfs:label "é filho de"@pt .
+
+arleko:tieneHijo a owl:ObjectProperty ;
+    rdfs:label "tiene hijo"@es ; rdfs:label "has child"@en ; rdfs:label "tem filho"@pt .
+
+arleko:perteneceANorma a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:tieneUnidad ;
+    rdfs:domain arleko:UnidadNormativa ; rdfs:range arleko:Norma ;
+    rdfs:label "pertenece a norma"@es ; rdfs:label "belongs to norm"@en ; rdfs:label "pertence à norma"@pt .
+
+arleko:tieneUnidad a owl:ObjectProperty ;
+    rdfs:label "tiene unidad"@es ; rdfs:label "has unit"@en ; rdfs:label "tem unidade"@pt .
+
+# ---- 3.2 Versionado --------------------------------------------------
+
+arleko:esVersionDe a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:tieneVersion ;
+    rdfs:domain arleko:Version ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "es versión de"@es ; rdfs:label "is version of"@en ; rdfs:label "é versão de"@pt .
+
+arleko:tieneVersion a owl:ObjectProperty ;
+    rdfs:label "tiene versión"@es ; rdfs:label "has version"@en ; rdfs:label "tem versão"@pt .
+
+arleko:versionAnterior a owl:ObjectProperty, owl:FunctionalProperty, owl:InverseFunctionalProperty ;
+    owl:inverseOf arleko:versionSiguiente ;
+    rdfs:domain arleko:Version ; rdfs:range arleko:Version ;
+    rdfs:label "versión anterior"@es ; rdfs:label "previous version"@en ; rdfs:label "versão anterior"@pt .
+
+arleko:versionSiguiente a owl:ObjectProperty ;
+    rdfs:label "versión siguiente"@es ; rdfs:label "next version"@en ; rdfs:label "próxima versão"@pt .
+
+arleko:tipoVersion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Version ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de versión"@es ; rdfs:label "version kind"@en ; rdfs:label "tipo de versão"@pt .
+
+arleko:tieneEstadoLegal a owl:ObjectProperty ;
+    rdfs:range skos:Concept ;
+    rdfs:label "tiene estado legal"@es ; rdfs:label "has legal status"@en ; rdfs:label "tem estado legal"@pt ;
+    rdfs:comment "Valor restringido al esquema arlekov:EsquemaEstadoLegal."@es .
+
+arleko:estadoVigenciaActual a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf arleko:tieneEstadoLegal ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "estado de vigencia actual"@es ;
+    rdfs:label "current validity status"@en ;
+    rdfs:label "estado de vigência atual"@pt ;
+    rdfs:comment "Estado de vigencia de la norma. El valor debe pertenecer a arlekov:EsquemaEstadoLegal."@es .
+
+arleko:estadoLegalActual a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf arleko:estadoVigenciaActual ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "estado legal actual (compatibilidad)"@es ;
+    rdfs:label "current legal status (compatibility)"@en ;
+    rdfs:label "estado legal atual (compatibilidade)"@pt ;
+    owl:deprecated true ;
+    rdfs:comment "Propiedad heredada por compatibilidad. Para nuevos datos, utilizar estadoVigenciaActual y, cuando corresponda, estadoAplicacionActual y estadoModificacionActual."@es .
+
+arleko:estadoAplicacionActual a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "estado de aplicación actual"@es ;
+    rdfs:label "current applicability status"@en ;
+    rdfs:label "estado de aplicação atual"@pt ;
+    rdfs:comment "Indica si la aplicación de la norma está operativa o suspendida. El valor debe pertenecer a arlekov:EsquemaEstadoAplicacion."@es .
+
+arleko:estadoModificacionActual a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Norma ;
+    rdfs:range skos:Concept ;
+    rdfs:label "estado de modificación actual"@es ;
+    rdfs:label "current amendment status"@en ;
+    rdfs:label "estado de modificação atual"@pt ;
+    rdfs:comment "Indica si la obra normativa ha sido modificada. El concepto debe pertenecer a arlekov:EsquemaEstadoModificacion. Es independiente del estado de vigencia."@es .
+
+# ---- 3.3 Actos modificatorios ---------------------------------------
+
+arleko:obraActuante a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:realizaActo ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "obra actuante"@es ; rdfs:label "acting work"@en ; rdfs:label "obra atuante"@pt .
+
+arleko:realizaActo a owl:ObjectProperty ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ActoModificatorio ;
+    rdfs:label "realiza acto"@es ; rdfs:label "performs act"@en ; rdfs:label "realiza ato"@pt .
+
+arleko:obraDestino a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:afectadaPorActo ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "obra destino"@es ; rdfs:label "target work"@en ; rdfs:label "obra destino"@pt .
+
+arleko:afectadaPorActo a owl:ObjectProperty ;
+    rdfs:label "afectada por acto"@es ; rdfs:label "affected by act"@en ; rdfs:label "afetada por ato"@pt .
+
+arleko:tipoModificacion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de modificación"@es ; rdfs:label "modification type"@en ; rdfs:label "tipo de modificação"@pt .
+
+arleko:produceVersion a owl:ObjectProperty ;
+    owl:inverseOf arleko:creadaPorActo ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range arleko:Version ;
+    rdfs:label "produce versión"@es ; rdfs:label "produces version"@en ; rdfs:label "produz versão"@pt .
+
+arleko:creadaPorActo a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "creada por acto"@es ; rdfs:label "created by act"@en ; rdfs:label "criada por ato"@pt .
+
+arleko:cierraVersion a owl:ObjectProperty ;
+    owl:inverseOf arleko:cerradaPorActo ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range arleko:Version ;
+    rdfs:label "cierra versión"@es ; rdfs:label "closes version"@en ; rdfs:label "encerra versão"@pt .
+
+arleko:cerradaPorActo a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "cerrada por acto"@es ; rdfs:label "closed by act"@en ; rdfs:label "encerrada por ato"@pt .
+
+# ---- 3.4 Relaciones directas entre obras ---------------------------
+
+arleko:modifica a owl:ObjectProperty ;
+    owl:inverseOf arleko:modificadaPor ;
+    owl:propertyChainAxiom ( arleko:realizaActo arleko:obraDestino ) ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "modifica"@es ; rdfs:label "modifies"@en ; rdfs:label "modifica"@pt .
+
+arleko:modificadaPor a owl:ObjectProperty ;
+    rdfs:label "modificada por"@es ; rdfs:label "modified by"@en ; rdfs:label "modificada por"@pt .
+
+arleko:enmienda a owl:ObjectProperty ;
+    rdfs:subPropertyOf arleko:modifica, eli:amends ;
+    owl:inverseOf arleko:enmendadaPor ;
+    rdfs:label "enmienda"@es ; rdfs:label "amends"@en ; rdfs:label "emenda"@pt .
+
+arleko:enmendadaPor a owl:ObjectProperty ;
+    rdfs:label "enmendada por"@es ; rdfs:label "amended by"@en ; rdfs:label "emendada por"@pt .
+
+arleko:deroga a owl:ObjectProperty ;
+    rdfs:subPropertyOf arleko:modifica, eli:repeals ;
+    owl:inverseOf arleko:derogadaPor ;
+    rdfs:label "deroga"@es ; rdfs:label "repeals"@en ; rdfs:label "revoga"@pt .
+
+arleko:derogadaPor a owl:ObjectProperty ;
+    rdfs:label "derogada por"@es ; rdfs:label "repealed by"@en ; rdfs:label "revogada por"@pt .
+
+arleko:reemplaza a owl:ObjectProperty ;
+    rdfs:subPropertyOf arleko:modifica ;
+    owl:inverseOf arleko:reemplazadaPor ;
+    rdfs:label "reemplaza"@es ; rdfs:label "replaces"@en ; rdfs:label "substitui"@pt .
+
+arleko:reemplazadaPor a owl:ObjectProperty ;
+    rdfs:label "reemplazada por"@es ; rdfs:label "replaced by"@en ; rdfs:label "substituída por"@pt .
+
+arleko:suspende a owl:ObjectProperty ;
+    rdfs:subPropertyOf arleko:modifica ;
+    owl:inverseOf arleko:suspendidaPor ;
+    rdfs:label "suspende"@es ; rdfs:label "suspends"@en ; rdfs:label "suspende"@pt .
+
+arleko:suspendidaPor a owl:ObjectProperty ;
+    rdfs:label "suspendida por"@es ; rdfs:label "suspended by"@en ; rdfs:label "suspensa por"@pt .
+
+arleko:corrige a owl:ObjectProperty ;
+    rdfs:subPropertyOf arleko:modifica, eli:corrects ;
+    owl:inverseOf arleko:corregidaPor ;
+    rdfs:label "corrige"@es ; rdfs:label "corrects"@en ; rdfs:label "corrige"@pt .
+
+arleko:corregidaPor a owl:ObjectProperty ;
+    rdfs:label "corregida por"@es ; rdfs:label "corrected by"@en ; rdfs:label "corrigida por"@pt .
+
+arleko:reglamenta a owl:ObjectProperty ;
+    owl:inverseOf arleko:reglamentadaPor ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "reglamenta"@es ; rdfs:label "regulates"@en ; rdfs:label "regulamenta"@pt .
+
+arleko:reglamentadaPor a owl:ObjectProperty ;
+    rdfs:label "reglamentada por"@es ; rdfs:label "regulated by"@en ; rdfs:label "regulamentada por"@pt .
+
+arleko:seFundaEn a owl:ObjectProperty ;
+    rdfs:subPropertyOf eli:based_on ;
+    owl:inverseOf arleko:esFundamentoDe ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "se funda en"@es ; rdfs:label "based on"@en ; rdfs:label "fundamenta-se em"@pt .
+
+arleko:esFundamentoDe a owl:ObjectProperty ;
+    rdfs:label "es fundamento de"@es ; rdfs:label "basis for"@en ; rdfs:label "é fundamento de"@pt .
+
+arleko:refiereA a owl:ObjectProperty ;
+    rdfs:subPropertyOf eli:cites ;
+    owl:inverseOf arleko:referidaPor ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "refiere a"@es ; rdfs:label "refers to"@en ; rdfs:label "refere-se a"@pt .
+
+arleko:referidaPor a owl:ObjectProperty ;
+    rdfs:label "referida por"@es ; rdfs:label "referred to by"@en ; rdfs:label "referida por"@pt .
+
+# ---- 3.5 Referencias -------------------------------------------------
+
+arleko:fuenteReferencia a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:tieneReferencia ;
+    rdfs:domain arleko:Referencia ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "fuente de referencia"@es ; rdfs:label "reference source"@en ; rdfs:label "fonte de referência"@pt .
+
+arleko:tieneReferencia a owl:ObjectProperty ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range arleko:Referencia ;
+    rdfs:label "tiene referencia"@es ; rdfs:label "has reference"@en ; rdfs:label "tem referência"@pt .
+
+arleko:versionFuenteReferencia a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range arleko:Version ;
+    rdfs:label "versión fuente de referencia"@es ; rdfs:label "reference source version"@en ; rdfs:label "versão fonte de referência"@pt .
+
+arleko:destinoReferencia a owl:ObjectProperty ;
+    owl:inverseOf arleko:objetoDeReferencia ;
+    rdfs:domain arleko:Referencia ; rdfs:range arleko:ObraJuridica ;
+    rdfs:label "destino de referencia"@es ; rdfs:label "reference target"@en ; rdfs:label "destino de referência"@pt .
+
+arleko:objetoDeReferencia a owl:ObjectProperty ;
+    rdfs:label "objeto de referencia"@es ; rdfs:label "target of reference"@en ; rdfs:label "objeto de referência"@pt .
+
+arleko:versionDestinoReferencia a owl:ObjectProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range arleko:Version ;
+    rdfs:label "versión destino de referencia"@es ; rdfs:label "reference target version"@en ; rdfs:label "versão destino de referência"@pt .
+
+arleko:tipoReferencia a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de referencia"@es ; rdfs:label "reference type"@en ; rdfs:label "tipo de referência"@pt .
+
+arleko:modoReferencia a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range skos:Concept ;
+    rdfs:label "modo de referencia"@es ; rdfs:label "reference mode"@en ; rdfs:label "modo de referência"@pt .
+
+# ---- 3.6 Clasificación, contexto, publicación ------------------------
+
+arleko:tipoNorma a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf eli:type_document ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de norma"@es ; rdfs:label "norm type"@en ; rdfs:label "tipo de norma"@pt .
+
+arleko:tipoNivel a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:UnidadNormativa ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de nivel"@es ; rdfs:label "level type"@en ; rdfs:label "tipo de nível"@pt .
+
+arleko:materia a owl:ObjectProperty ;
+    rdfs:subPropertyOf eli:is_about ;
+    rdfs:domain arleko:ObraJuridica, arleko:UnidadNormativa ;
+    rdfs:range skos:Concept ;
+    rdfs:label "materia"@es ; rdfs:label "subject matter"@en ; rdfs:label "matéria"@pt .
+
+arleko:jurisdiccion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( arleko:Norma arleko:OrganoEmisor arleko:EdicionBoletinOficial ) ] ;
+    rdfs:range arleko:Jurisdiccion ;
+    rdfs:label "jurisdicción"@es ; rdfs:label "jurisdiction"@en ; rdfs:label "jurisdição"@pt .
+
+arleko:jurisdiccionPadre a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Jurisdiccion ; rdfs:range arleko:Jurisdiccion ;
+    rdfs:label "jurisdicción padre"@es ; rdfs:label "parent jurisdiction"@en ; rdfs:label "jurisdição pai"@pt .
+
+arleko:nivelJurisdiccion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Jurisdiccion ; rdfs:range skos:Concept ;
+    rdfs:label "nivel de jurisdicción"@es ; rdfs:label "jurisdiction level"@en ; rdfs:label "nível de jurisdição"@pt .
+
+arleko:emitidaPor a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range arleko:OrganoEmisor ;
+    rdfs:label "emitida por"@es ; rdfs:label "issued by"@en ; rdfs:label "emitida por"@pt ;
+    rdfs:comment "Para actos administrativos (resoluciones, comunicaciones, disposiciones). Para leyes, usar sancionadaPor y promulgadaPor."@es .
+
+arleko:sancionadaPor a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range arleko:OrganoEmisor ;
+    rdfs:label "sancionada por"@es ; rdfs:label "sanctioned by"@en ; rdfs:label "sancionada por"@pt ;
+    rdfs:comment "Cuerpo legislativo que sanciona la ley: Congreso Nacional (Diputados y Senadores), Legislatura Provincial, Concejo Deliberante. Conforme arts. 77-84 CN."@es .
+
+arleko:promulgadaPor a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range arleko:OrganoEmisor ;
+    rdfs:label "promulgada por"@es ; rdfs:label "promulgated by"@en ; rdfs:label "promulgada por"@pt ;
+    rdfs:comment "Poder Ejecutivo que promulga la ley (expresa o tácitamente), conforme arts. 78 y 80 CN."@es .
+
+arleko:publicadaEn a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range arleko:EdicionBoletinOficial ;
+    rdfs:label "publicada en"@es ; rdfs:label "published in"@en ; rdfs:label "publicada em"@pt .
+
+arleko:modoPromulgacion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "modo de promulgación"@es ; rdfs:label "promulgation mode"@en ; rdfs:label "modo de promulgação"@pt .
+
+arleko:estadoVerificacion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range skos:Concept ;
+    rdfs:label "estado de verificación"@es ; rdfs:label "verification status"@en ; rdfs:label "estado de verificação"@pt .
+
+arleko:puedeModificarTipoNorma a owl:ObjectProperty ;
+    rdfs:domain skos:Concept ; rdfs:range skos:Concept ;
+    rdfs:label "puede modificar tipo de norma"@es ; rdfs:label "may modify norm type"@en ; rdfs:label "pode modificar tipo de norma"@pt .
+
+arleko:puedeModificarTipoNormaCondicional a owl:ObjectProperty ;
+    rdfs:domain skos:Concept ; rdfs:range skos:Concept ;
+    rdfs:label "puede modificar tipo de norma condicionalmente"@es ;
+    rdfs:label "may modify norm type conditionally"@en ;
+    rdfs:label "pode modificar tipo de norma condicionalmente"@pt .
+
+arleko:puedeContenerNivel a owl:ObjectProperty ;
+    rdfs:domain skos:Concept ; rdfs:range skos:Concept ;
+    rdfs:label "puede contener nivel"@es ; rdfs:label "may contain level"@en ; rdfs:label "pode conter nível"@pt .
+
+# ---- 3.7 Sujetos regulados y órganos --------------------------------
+
+arleko:sujetoDestinatario a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range arleko:SujetoRegulado ;
+    rdfs:label "sujeto destinatario"@es ; rdfs:label "addressee"@en ; rdfs:label "sujeito destinatário"@pt .
+
+arleko:tipoSujeto a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:SujetoRegulado ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de sujeto"@es ; rdfs:label "subject type"@en ; rdfs:label "tipo de sujeito"@pt .
+
+arleko:tipoOrgano a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de órgano"@es ; rdfs:label "body type"@en ; rdfs:label "tipo de órgão"@pt .
+
+arleko:organismoPadre a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range arleko:OrganoEmisor ;
+    rdfs:label "organismo padre"@es ; rdfs:label "parent body"@en ; rdfs:label "órgão pai"@pt .
+
+arleko:predecesorOrgano a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf arleko:sucesorOrgano ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range arleko:OrganoEmisor ;
+    rdfs:label "predecesor"@es ; rdfs:label "predecessor"@en ; rdfs:label "predecessor"@pt .
+
+arleko:sucesorOrgano a owl:ObjectProperty ;
+    rdfs:label "sucesor"@es ; rdfs:label "successor"@en ; rdfs:label "sucessor"@pt .
+
+arleko:alcanceNorma a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range skos:Concept ;
+    rdfs:label "alcance de la norma"@es ; rdfs:label "scope of the norm"@en ; rdfs:label "alcance da norma"@pt .
+
+# ---- 3.8 Unidades territoriales (nuevo) ----------------------------
+
+arleko:tipoUnidadTerritorial a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:UnidadTerritorial ; rdfs:range skos:Concept ;
+    rdfs:label "tipo de unidad territorial"@es ;
+    rdfs:label "territorial unit type"@en ;
+    rdfs:label "tipo de unidade territorial"@pt ;
+    rdfs:comment "Valor restringido al esquema arlekov:EsquemaUnidadTerritorial (lista taxativa)."@es .
+
+arleko:unidadTerritorialPadre a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:UnidadTerritorial ; rdfs:range arleko:UnidadTerritorial ;
+    rdfs:label "unidad territorial padre"@es ;
+    rdfs:label "parent territorial unit"@en ;
+    rdfs:label "unidade territorial pai"@pt ;
+    rdfs:comment "Jerarquía: Municipio -> Departamento/Partido -> Provincia -> Nación."@es .
+
+arleko:ambitoTerritorial a owl:ObjectProperty ;
+    rdfs:domain arleko:Norma ;
+    rdfs:range skos:Concept ;
+    rdfs:label "ámbito territorial"@es ;
+    rdfs:label "territorial scope"@en ;
+    rdfs:label "âmbito territorial"@pt ;
+    rdfs:comment "Ámbito espacial de aplicación de la norma. Los conceptos marítimos describen espacios geográficos y no implican por sí mismos soberanía o jurisdicción argentina. Valores controlados en arlekov:EsquemaAmbitoMaritimo."@es .
+
+# =====================================================================
+# 4. PROPIEDADES DE DATOS
+# =====================================================================
+
+# ---- 4.1 Identificación y fechas de la norma ------------------------
+
+arleko:identificadorLocal a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:id_local ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range xsd:string ;
+    rdfs:label "identificador local"@es ; rdfs:label "local identifier"@en ; rdfs:label "identificador local"@pt .
+
+arleko:designacionOficial a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:string ;
+    rdfs:label "designación oficial"@es ; rdfs:label "official designation"@en ; rdfs:label "designação oficial"@pt .
+
+arleko:numeroNorma a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:string ;
+    rdfs:label "número de norma"@es ; rdfs:label "norm number"@en ; rdfs:label "número da norma"@pt .
+
+arleko:anioNorma a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:gYear ;
+    rdfs:label "año de la norma"@es ; rdfs:label "norm year"@en ; rdfs:label "ano da norma"@pt .
+
+arleko:titulo a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:title ;
+    rdfs:domain arleko:Norma ; rdfs:range rdfs:Literal ;
+    rdfs:label "título"@es ; rdfs:label "title"@en ; rdfs:label "título"@pt .
+
+arleko:tituloCorto a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:title_short ;
+    rdfs:domain arleko:Norma ; rdfs:range rdfs:Literal ;
+    rdfs:label "título corto"@es ; rdfs:label "short title"@en ; rdfs:label "título curto"@pt .
+
+arleko:nombrePopular a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range rdfs:Literal ;
+    rdfs:label "nombre popular"@es ; rdfs:label "popular name"@en ; rdfs:label "nome popular"@pt .
+
+arleko:descripcion a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range rdfs:Literal ;
+    rdfs:label "descripción"@es ; rdfs:label "description"@en ; rdfs:label "descrição"@pt .
+
+arleko:resumenEjecutivo a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range rdfs:Literal ;
+    rdfs:label "resumen ejecutivo"@es ; rdfs:label "executive summary"@en ; rdfs:label "resumo executivo"@pt .
+
+arleko:fechaNorma a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de la norma"@es ; rdfs:label "norm date"@en ; rdfs:label "data da norma"@pt .
+
+arleko:fechaSancion a owl:DatatypeProperty ;
+    rdfs:subPropertyOf arleko:fechaNorma ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de sanción"@es ; rdfs:label "date sanctioned"@en ; rdfs:label "data de sanção"@pt .
+
+arleko:fechaPromulgada a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de promulgación"@es ; rdfs:label "date promulgated"@en ; rdfs:label "data de promulgação"@pt .
+
+arleko:fechaDictada a owl:DatatypeProperty ;
+    rdfs:subPropertyOf arleko:fechaNorma, eli:date_document ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de dictado"@es ; rdfs:label "date issued"@en ; rdfs:label "data de expedição"@pt .
+
+arleko:fechaPublicacion a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:date_publication ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de publicación"@es ; rdfs:label "date published"@en ; rdfs:label "data de publicação"@pt .
+
+arleko:fechaEntradaVigencia a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:first_date_entry_in_force ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de entrada en vigencia"@es ; rdfs:label "entry into force date"@en ; rdfs:label "data de entrada em vigor"@pt .
+
+arleko:fechaCeseVigencia a owl:DatatypeProperty ;
+    rdfs:subPropertyOf eli:date_no_longer_in_force ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de cese de vigencia"@es ; rdfs:label "end of force date"@en ; rdfs:label "data de cessação de vigor"@pt .
+
+arleko:fechaVeto a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de veto"@es ; rdfs:label "veto date"@en ; rdfs:label "data de veto"@pt .
+
+arleko:fechaFirmaTratado a owl:DatatypeProperty ;
+    rdfs:subPropertyOf arleko:fechaNorma ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de firma del tratado"@es ; rdfs:label "treaty signature date"@en ; rdfs:label "data de assinatura do tratado"@pt .
+
+arleko:fechaRatificacion a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:date ;
+    rdfs:label "fecha de ratificación"@es ; rdfs:label "ratification date"@en ; rdfs:label "data de ratificação"@pt .
+
+arleko:identificadorExterno a owl:DatatypeProperty ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range xsd:string ;
+    rdfs:label "identificador externo"@es ; rdfs:label "external identifier"@en ; rdfs:label "identificador externo"@pt .
+
+arleko:idInfoLEG a owl:DatatypeProperty ;
+    rdfs:subPropertyOf arleko:identificadorExterno ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range xsd:string ;
+    rdfs:label "identificador InfoLEG"@es ; rdfs:label "InfoLEG identifier"@en ; rdfs:label "identificador InfoLEG"@pt .
+
+arleko:idSAIJ a owl:DatatypeProperty ;
+    rdfs:subPropertyOf arleko:identificadorExterno ;
+    rdfs:domain arleko:ObraJuridica ; rdfs:range xsd:string ;
+    rdfs:label "identificador SAIJ"@es ; rdfs:label "SAIJ identifier"@en ; rdfs:label "identificador SAIJ"@pt .
+
+# ---- 4.2 Contenido y vigencia de la versión ------------------------
+
+arleko:fechaDesde a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:date ;
+    rdfs:label "fecha desde"@es ; rdfs:label "date from"@en ; rdfs:label "data de início"@pt .
+
+arleko:fechaHasta a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:date ;
+    rdfs:label "fecha hasta"@es ; rdfs:label "date until"@en ; rdfs:label "data de fim"@pt .
+
+arleko:texto a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range rdfs:Literal ;
+    rdfs:label "texto"@es ; rdfs:label "text"@en ; rdfs:label "texto"@pt .
+
+arleko:epigrafe a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range rdfs:Literal ;
+    rdfs:label "epígrafe"@es ; rdfs:label "heading"@en ; rdfs:label "epígrafe"@pt .
+
+arleko:etiquetaNumero a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:string ;
+    rdfs:label "etiqueta de número"@es ; rdfs:label "number label"@en ; rdfs:label "etiqueta de número"@pt .
+
+arleko:numeroBase a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "número base"@es ; rdfs:label "number base"@en ; rdfs:label "número base"@pt .
+
+arleko:sufijoNumero a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:string ;
+    rdfs:label "sufijo de número"@es ; rdfs:label "number suffix"@en ; rdfs:label "sufixo de número"@pt .
+
+arleko:posicion a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:positiveInteger ;
+    rdfs:label "posición"@es ; rdfs:label "position"@en ; rdfs:label "posição"@pt .
+
+arleko:documentoFuente a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "documento fuente"@es ; rdfs:label "source document"@en ; rdfs:label "documento fonte"@pt .
+
+arleko:esTextoOrdenado a owl:DatatypeProperty ;
+    rdfs:domain arleko:Version ; rdfs:range xsd:boolean ;
+    rdfs:label "es texto ordenado"@es ; rdfs:label "is consolidated text"@en ; rdfs:label "é texto consolidado"@pt .
+
+# ---- 4.3 Actos y referencias ----------------------------------------
+
+arleko:vigenteDesde a owl:DatatypeProperty ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range xsd:date ;
+    rdfs:label "vigente desde"@es ; rdfs:label "effective from"@en ; rdfs:label "vigente desde"@pt .
+
+arleko:textoEvidencia a owl:DatatypeProperty ;
+    rdfs:domain arleko:ActoModificatorio ; rdfs:range rdfs:Literal ;
+    rdfs:label "texto de evidencia"@es ; rdfs:label "evidence text"@en ; rdfs:label "texto de evidência"@pt .
+
+arleko:textoAncla a owl:DatatypeProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range rdfs:Literal ;
+    rdfs:label "texto ancla"@es ; rdfs:label "anchor text"@en ; rdfs:label "texto âncora"@pt .
+
+arleko:estaResuelta a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range xsd:boolean ;
+    rdfs:label "está resuelta"@es ; rdfs:label "is resolved"@en ; rdfs:label "está resolvida"@pt .
+
+arleko:textoDestinoNoResuelto a owl:DatatypeProperty ;
+    rdfs:domain arleko:Referencia ; rdfs:range rdfs:Literal ;
+    rdfs:label "texto de destino no resuelto"@es ; rdfs:label "unresolved target text"@en ; rdfs:label "texto de destino não resolvido"@pt .
+
+arleko:confianzaExtraccion a owl:DatatypeProperty ;
+    rdfs:range xsd:decimal ;
+    rdfs:comment "Confianza asociada a un dato extraído automáticamente. Se omite deliberadamente el dominio para permitir su uso sobre distintos recursos o anotaciones de extracción; se recomienda restringirlo mediante SHACL en cada perfil de datos."@es ;
+    rdfs:label "confianza de extracción"@es ; rdfs:label "extraction confidence"@en ; rdfs:label "confiança de extração"@pt .
+
+# ---- 4.4 Boletín y anotaciones de vocabulario -----------------------
+
+arleko:nombreBoletin a owl:DatatypeProperty ;
+    rdfs:domain arleko:EdicionBoletinOficial ; rdfs:range xsd:string ;
+    rdfs:label "nombre del boletín"@es ; rdfs:label "gazette name"@en ; rdfs:label "nome do boletim"@pt .
+
+arleko:numeroEdicion a owl:DatatypeProperty ;
+    rdfs:domain arleko:EdicionBoletinOficial ; rdfs:range xsd:string ;
+    rdfs:label "número de edición"@es ; rdfs:label "issue number"@en ; rdfs:label "número da edição"@pt .
+
+arleko:fechaEdicion a owl:DatatypeProperty ;
+    rdfs:domain arleko:EdicionBoletinOficial ; rdfs:range xsd:date ;
+    rdfs:label "fecha de edición"@es ; rdfs:label "issue date"@en ; rdfs:label "data da edição"@pt .
+
+arleko:fechaAplicable a owl:AnnotationProperty ;
+    rdfs:label "fecha aplicable"@es ; rdfs:label "applicable date"@en ; rdfs:label "data aplicável"@pt .
+
+arleko:fechaRequerida a owl:AnnotationProperty ;
+    rdfs:label "fecha requerida"@es ; rdfs:label "required date"@en ; rdfs:label "data exigida"@pt .
+
+arleko:rangoJerarquico a owl:DatatypeProperty ;
+    rdfs:domain skos:Concept ; rdfs:range xsd:integer ;
+    rdfs:label "rango jerárquico"@es ; rdfs:label "hierarchy rank"@en ; rdfs:label "ranking hierárquico"@pt .
+
+arleko:puedeSerNivelRaiz a owl:DatatypeProperty ;
+    rdfs:domain skos:Concept ; rdfs:range xsd:boolean ;
+    rdfs:label "puede ser nivel raíz"@es ; rdfs:label "may be root level"@en ; rdfs:label "pode ser nível raiz"@pt .
+
+arleko:esTratadoDDHH a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:boolean ;
+    rdfs:label "es tratado de DDHH"@es ; rdfs:label "is human rights treaty"@en ; rdfs:label "é tratado de direitos humanos"@pt .
+
+# ---- 4.5 Órganos emisores ------------------------------------------
+
+arleko:denominacionAnterior a owl:DatatypeProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range xsd:string ;
+    rdfs:label "denominación anterior"@es ; rdfs:label "former name"@en ; rdfs:label "denominação anterior"@pt .
+
+arleko:fechaInicioActividad a owl:DatatypeProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range xsd:date ;
+    rdfs:label "fecha de inicio de actividad"@es ; rdfs:label "activity start date"@en ; rdfs:label "data de início de atividade"@pt .
+
+arleko:fechaCeseActividad a owl:DatatypeProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range xsd:date ;
+    rdfs:label "fecha de cese de actividad"@es ; rdfs:label "activity end date"@en ; rdfs:label "data de cessação de atividade"@pt .
+
+arleko:codigoOrgano a owl:DatatypeProperty ;
+    rdfs:domain arleko:OrganoEmisor ; rdfs:range xsd:string ;
+    rdfs:label "código de órgano"@es ; rdfs:label "body code"@en ; rdfs:label "código de órgão"@pt .
+
+arleko:periodoFiscal a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:string ;
+    rdfs:label "período fiscal"@es ; rdfs:label "fiscal period"@en ; rdfs:label "período fiscal"@pt .
+
+arleko:urlPublicacion a owl:DatatypeProperty ;
+    rdfs:domain arleko:Norma ; rdfs:range xsd:anyURI ;
+    rdfs:label "URL de publicación"@es ; rdfs:label "publication URL"@en ; rdfs:label "URL de publicação"@pt .
+
+# =====================================================================
+# 5. VOCABULARIOS CONTROLADOS (SKOS)
+# =====================================================================
+
+# ---- 5.1 Tipos de norma ----------------------------------------------
+
+arlekov:EsquemaTipoNorma a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de norma"@es ;
+    skos:prefLabel "Norm types"@en ;
+    skos:prefLabel "Tipos de norma"@pt .
+
+arlekov:TipoNorma-Constitucion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Constitución"@es ; skos:prefLabel "Constitution"@en ; skos:prefLabel "Constituição"@pt ;
+    arleko:rangoJerarquico 1 .
+arlekov:TipoNorma-TratadoDDHH a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Tratado de derechos humanos con jerarquía constitucional"@es ;
+    skos:prefLabel "Human rights treaty with constitutional rank"@en ;
+    skos:prefLabel "Tratado de direitos humanos com hierarquia constitucional"@pt ;
+    arleko:rangoJerarquico 2 .
+arlekov:TipoNorma-TratadoIntegracion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Tratado de integración"@es ; skos:prefLabel "Integration treaty"@en ; skos:prefLabel "Tratado de integração"@pt ;
+    arleko:rangoJerarquico 3 .
+arlekov:TipoNorma-Tratado a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Tratado internacional"@es ; skos:prefLabel "International treaty"@en ; skos:prefLabel "Tratado internacional"@pt ;
+    arleko:rangoJerarquico 4 .
+arlekov:TipoNorma-Ley a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Ley"@es ; skos:prefLabel "Law"@en ; skos:prefLabel "Lei"@pt ;
+    arleko:rangoJerarquico 4 .
+arlekov:TipoNorma-Codigo a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Ley ;
+    skos:prefLabel "Código"@es ; skos:prefLabel "Code"@en ; skos:prefLabel "Código"@pt ;
+    arleko:rangoJerarquico 4 .
+arlekov:TipoNorma-DecretoLey a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Decreto-ley"@es ; skos:prefLabel "Decree-law"@en ; skos:prefLabel "Decreto-lei"@pt ;
+    arleko:rangoJerarquico 4 .
+arlekov:TipoNorma-Ordenanza a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Ordenanza"@es ; skos:prefLabel "Ordinance"@en ; skos:prefLabel "Ordenança"@pt ;
+    arleko:rangoJerarquico 4 .
+arlekov:TipoNorma-DNU a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Decreto ;
+    skos:prefLabel "Decreto de necesidad y urgencia (DNU)"@es ;
+    skos:prefLabel "Decree of necessity and urgency"@en ;
+    skos:prefLabel "Decreto de necessidade e urgência"@pt ;
+    arleko:rangoJerarquico 5 .
+arlekov:TipoNorma-DecretoDelegado a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Decreto ;
+    skos:prefLabel "Decreto delegado"@es ; skos:prefLabel "Delegated decree"@en ; skos:prefLabel "Decreto delegado"@pt ;
+    arleko:rangoJerarquico 5 .
+arlekov:TipoNorma-Decreto a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Decreto"@es ; skos:prefLabel "Decree"@en ; skos:prefLabel "Decreto"@pt ;
+    arleko:rangoJerarquico 6 .
+arlekov:TipoNorma-DecretoReglamentario a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Decreto ;
+    skos:prefLabel "Decreto reglamentario"@es ; skos:prefLabel "Regulatory decree"@en ; skos:prefLabel "Decreto regulamentar"@pt ;
+    arleko:rangoJerarquico 6 .
+arlekov:TipoNorma-DecretoAutonomo a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Decreto ;
+    skos:prefLabel "Decreto autónomo"@es ; skos:prefLabel "Autonomous decree"@en ; skos:prefLabel "Decreto autônomo"@pt ;
+    arleko:rangoJerarquico 6 .
+arlekov:TipoNorma-Resolucion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Resolución"@es ; skos:prefLabel "Resolution"@en ; skos:prefLabel "Resolução"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-ResolucionConjunta a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Resolucion ;
+    skos:prefLabel "Resolución conjunta"@es ; skos:prefLabel "Joint resolution"@en ; skos:prefLabel "Resolução conjunta"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-ResolucionGeneral a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Resolucion ;
+    skos:prefLabel "Resolución General"@es ; skos:prefLabel "General Resolution"@en ; skos:prefLabel "Resolução Geral"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-ResolucionGeneralConjunta a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-ResolucionGeneral ;
+    skos:prefLabel "Resolución General Conjunta"@es ; skos:prefLabel "Joint General Resolution"@en ; skos:prefLabel "Resolução Geral Conjunta"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-Circular a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Resolucion ;
+    skos:prefLabel "Circular"@es ; skos:prefLabel "Circular"@en ; skos:prefLabel "Circular"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-Comunicacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:broader arlekov:TipoNorma-Resolucion ;
+    skos:prefLabel "Comunicación"@es ; skos:prefLabel "Communication"@en ; skos:prefLabel "Comunicação"@pt ;
+    arleko:rangoJerarquico 8 .
+arlekov:TipoNorma-DecisionAdministrativa a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Decisión administrativa"@es ; skos:prefLabel "Administrative decision"@en ; skos:prefLabel "Decisão administrativa"@pt ;
+    arleko:rangoJerarquico 7 .
+arlekov:TipoNorma-Disposicion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoNorma ;
+    skos:prefLabel "Disposición"@es ; skos:prefLabel "Disposition"@en ; skos:prefLabel "Disposição"@pt ;
+    arleko:rangoJerarquico 8 .
+
+# ---- 5.2 Niveles estructurales ---------------------------------------
+
+arlekov:EsquemaNivelUnidad a skos:ConceptScheme ;
+    skos:prefLabel "Niveles de unidad"@es ;
+    skos:prefLabel "Unit levels"@en ;
+    skos:prefLabel "Níveis de unidade"@pt .
+
+arlekov:Nivel-Parte a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Parte"@es ; skos:prefLabel "Part"@en ; skos:prefLabel "Parte"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Libro, arlekov:Nivel-Titulo, arlekov:Nivel-Capitulo, arlekov:Nivel-Seccion, arlekov:Nivel-Articulo .
+arlekov:Nivel-Libro a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Libro"@es ; skos:prefLabel "Book"@en ; skos:prefLabel "Livro"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Titulo, arlekov:Nivel-Capitulo, arlekov:Nivel-Seccion, arlekov:Nivel-Articulo .
+arlekov:Nivel-Titulo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Título"@es ; skos:prefLabel "Title"@en ; skos:prefLabel "Título"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Capitulo, arlekov:Nivel-Seccion, arlekov:Nivel-Articulo .
+arlekov:Nivel-Capitulo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Capítulo"@es ; skos:prefLabel "Chapter"@en ; skos:prefLabel "Capítulo"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Seccion, arlekov:Nivel-Subseccion, arlekov:Nivel-Articulo .
+arlekov:Nivel-Seccion a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Sección"@es ; skos:prefLabel "Section"@en ; skos:prefLabel "Seção"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Capitulo, arlekov:Nivel-Subseccion, arlekov:Nivel-Articulo .
+arlekov:Nivel-Subseccion a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Subsección"@es ; skos:prefLabel "Subsection"@en ; skos:prefLabel "Subseção"@pt ;
+    arleko:puedeSerNivelRaiz false ;
+    arleko:puedeContenerNivel arlekov:Nivel-Articulo .
+arlekov:Nivel-Articulo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Artículo"@es ; skos:prefLabel "Article"@en ; skos:prefLabel "Artigo"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Parrafo, arlekov:Nivel-Inciso .
+arlekov:Nivel-Parrafo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Párrafo"@es ; skos:prefLabel "Paragraph"@en ; skos:prefLabel "Parágrafo"@pt ;
+    arleko:puedeSerNivelRaiz false ;
+    arleko:puedeContenerNivel arlekov:Nivel-Inciso .
+arlekov:Nivel-Inciso a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Inciso"@es ; skos:prefLabel "Item"@en ; skos:prefLabel "Inciso"@pt ;
+    arleko:puedeSerNivelRaiz false ;
+    arleko:puedeContenerNivel arlekov:Nivel-Subinciso .
+arlekov:Nivel-Subinciso a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Subinciso"@es ; skos:prefLabel "Subitem"@en ; skos:prefLabel "Subinciso"@pt ;
+    arleko:puedeSerNivelRaiz false .
+arlekov:Nivel-Anexo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Anexo"@es ; skos:prefLabel "Annex"@en ; skos:prefLabel "Anexo"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Parte, arlekov:Nivel-Libro, arlekov:Nivel-Titulo, arlekov:Nivel-Capitulo,
+        arlekov:Nivel-Seccion, arlekov:Nivel-Articulo, arlekov:Nivel-Parrafo, arlekov:Nivel-Inciso .
+arlekov:Nivel-Preambulo a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Preámbulo"@es ; skos:prefLabel "Preamble"@en ; skos:prefLabel "Preâmbulo"@pt ;
+    arleko:puedeSerNivelRaiz true .
+arlekov:Nivel-Considerando a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Considerando"@es ; skos:prefLabel "Recital"@en ; skos:prefLabel "Considerando"@pt ;
+    arleko:puedeSerNivelRaiz true .
+arlekov:Nivel-DisposicionTransitoria a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Disposición transitoria"@es ; skos:prefLabel "Transitory provision"@en ; skos:prefLabel "Disposição transitória"@pt ;
+    arleko:puedeSerNivelRaiz true ;
+    arleko:puedeContenerNivel arlekov:Nivel-Parrafo, arlekov:Nivel-Inciso .
+arlekov:Nivel-Comunicacion a skos:Concept ; skos:inScheme arlekov:EsquemaNivelUnidad ;
+    skos:prefLabel "Comunicación"@es ; skos:prefLabel "Communication"@en ; skos:prefLabel "Comunicação"@pt ;
+    arleko:puedeSerNivelRaiz false ;
+    arleko:puedeContenerNivel arlekov:Nivel-Parrafo, arlekov:Nivel-Inciso .
+
+# ---- 5.3 Tipos de modificación ---------------------------------------
+
+arlekov:EsquemaTipoModificacion a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de modificación"@es ;
+    skos:prefLabel "Modification types"@en ;
+    skos:prefLabel "Tipos de modificação"@pt .
+
+arlekov:TipoModificacion-Sustitucion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Sustitución"@es ; skos:prefLabel "Substitution"@en ; skos:prefLabel "Substituição"@pt .
+arlekov:TipoModificacion-Incorporacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Incorporación"@es ; skos:prefLabel "Insertion"@en ; skos:prefLabel "Incorporação"@pt .
+arlekov:TipoModificacion-Supresion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Supresión"@es ; skos:prefLabel "Deletion"@en ; skos:prefLabel "Supressão"@pt .
+arlekov:TipoModificacion-Derogacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Derogación"@es ; skos:prefLabel "Repeal"@en ; skos:prefLabel "Revogação"@pt .
+arlekov:TipoModificacion-Reemplazo a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Reemplazo de norma"@es ; skos:prefLabel "Norm replacement"@en ; skos:prefLabel "Substituição de norma"@pt .
+arlekov:TipoModificacion-Suspension a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Suspensión"@es ; skos:prefLabel "Suspension"@en ; skos:prefLabel "Suspensão"@pt .
+arlekov:TipoModificacion-Prorroga a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Prórroga"@es ; skos:prefLabel "Extension"@en ; skos:prefLabel "Prorrogação"@pt .
+arlekov:TipoModificacion-Correccion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Corrección"@es ; skos:prefLabel "Correction"@en ; skos:prefLabel "Correção"@pt .
+arlekov:TipoModificacion-Renumeracion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Renumeración"@es ; skos:prefLabel "Renumbering"@en ; skos:prefLabel "Renumeração"@pt .
+arlekov:TipoModificacion-Consolidacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Consolidación"@es ; skos:prefLabel "Consolidation"@en ; skos:prefLabel "Consolidação"@pt .
+arlekov:TipoModificacion-Nulidad a skos:Concept ; skos:inScheme arlekov:EsquemaTipoModificacion ;
+    skos:prefLabel "Nulidad"@es ; skos:prefLabel "Annulment"@en ; skos:prefLabel "Nulidade"@pt .
+
+# ---- 5.4 Tipos y modos de referencia ---------------------------------
+
+arlekov:EsquemaTipoReferencia a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de referencia"@es ;
+    skos:prefLabel "Reference types"@en ;
+    skos:prefLabel "Tipos de referência"@pt .
+
+arlekov:TipoReferencia-Cita a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Cita"@es ; skos:prefLabel "Citation"@en ; skos:prefLabel "Citação"@pt .
+arlekov:TipoReferencia-Aplicacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Aplicación"@es ; skos:prefLabel "Application"@en ; skos:prefLabel "Aplicação"@pt .
+arlekov:TipoReferencia-Excepcion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Excepción"@es ; skos:prefLabel "Exception"@en ; skos:prefLabel "Exceção"@pt .
+arlekov:TipoReferencia-Definicion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Definición"@es ; skos:prefLabel "Definition"@en ; skos:prefLabel "Definição"@pt .
+arlekov:TipoReferencia-Delegacion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Delegación"@es ; skos:prefLabel "Delegation"@en ; skos:prefLabel "Delegação"@pt .
+arlekov:TipoReferencia-IncorporacionPorRemision a skos:Concept ; skos:inScheme arlekov:EsquemaTipoReferencia ;
+    skos:prefLabel "Incorporación por remisión"@es ; skos:prefLabel "Incorporation by reference"@en ; skos:prefLabel "Incorporação por remissão"@pt .
+
+arlekov:EsquemaModoReferencia a skos:ConceptScheme ;
+    skos:prefLabel "Modos de referencia"@es ;
+    skos:prefLabel "Reference modes"@en ;
+    skos:prefLabel "Modos de referência"@pt .
+
+arlekov:ModoReferencia-Dinamica a skos:Concept ; skos:inScheme arlekov:EsquemaModoReferencia ;
+    skos:prefLabel "Dinámica"@es ; skos:prefLabel "Dynamic"@en ; skos:prefLabel "Dinâmica"@pt .
+arlekov:ModoReferencia-Estatica a skos:Concept ; skos:inScheme arlekov:EsquemaModoReferencia ;
+    skos:prefLabel "Estática"@es ; skos:prefLabel "Static"@en ; skos:prefLabel "Estática"@pt .
+
+# ---- 5.5 Estado legal (LISTA TAXATIVA) ------------------------------
+
+arlekov:EsquemaEstadoLegal a skos:ConceptScheme ;
+    skos:prefLabel "Estado legal"@es ;
+    skos:prefLabel "Legal status"@en ;
+    skos:prefLabel "Estado legal"@pt ;
+    skos:definition "Vocabulario controlado para el estado de vigencia de una norma. La suspensión de aplicación y la condición de modificada se representan en esquemas separados."@es .
+
+arlekov:EstadoLegal-Vigente a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoLegal ;
+    skos:prefLabel "Vigente"@es ; skos:prefLabel "In force"@en ; skos:prefLabel "Vigente"@pt ;
+    skos:definition "La norma produce plenos efectos jurídicos."@es .
+arlekov:EstadoLegal-Derogada a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoLegal ;
+    skos:prefLabel "Derogada"@es ; skos:prefLabel "Repealed"@en ; skos:prefLabel "Revogada"@pt ;
+    skos:definition "La norma ha cesado en su vigencia por efecto de una disposición posterior. Los efectos temporales de la derogación y las reglas transitorias dependen del régimen jurídico aplicable."@es .
+# El estado de modificación se modela en un esquema separado del estado de vigencia.
+arlekov:EsquemaEstadoModificacion a skos:ConceptScheme ;
+    skos:prefLabel "Estado de modificación"@es ;
+    skos:prefLabel "Amendment status"@en ;
+    skos:prefLabel "Estado de modificação"@pt ;
+    skos:definition "Indica si la obra normativa ha sufrido modificaciones, con independencia de que continúe vigente."@es .
+
+arlekov:EstadoModificacion-Modificada a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoModificacion ;
+    skos:prefLabel "Modificada"@es ; skos:prefLabel "Amended"@en ; skos:prefLabel "Modificada"@pt ;
+    skos:definition "La obra normativa ha sido alterada total o parcialmente por uno o más actos posteriores. Este estado no determina por sí solo si la norma está vigente, derogada o suspendida."@es .
+
+arlekov:EstadoModificacion-NoModificada a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoModificacion ;
+    skos:prefLabel "No modificada"@es ; skos:prefLabel "Unamended"@en ; skos:prefLabel "Não modificada"@pt ;
+    skos:definition "No se han identificado actos modificatorios aplicables a la obra normativa."@es .
+arlekov:EsquemaEstadoAplicacion a skos:ConceptScheme ;
+    skos:prefLabel "Estado de aplicación"@es ;
+    skos:prefLabel "Applicability status"@en ;
+    skos:prefLabel "Estado de aplicação"@pt ;
+    skos:definition "Vocabulario controlado para describir si la aplicación de una norma está operativa o suspendida, con independencia de su vigencia formal."@es .
+
+arlekov:EstadoAplicacion-Aplicable a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoAplicacion ;
+    skos:prefLabel "Aplicable"@es ; skos:prefLabel "Applicable"@en ; skos:prefLabel "Aplicável"@pt ;
+    skos:definition "La aplicación de la norma no está marcada como suspendida en los datos disponibles."@es .
+arlekov:EstadoAplicacion-Suspendida a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoAplicacion ;
+    skos:prefLabel "Suspendida"@es ; skos:prefLabel "Suspended"@en ; skos:prefLabel "Suspensa"@pt ;
+    skos:definition "La aplicación de la norma está temporalmente suspendida, sin que ello implique por sí mismo su derogación o pérdida de vigencia formal."@es .
+arlekov:EstadoLegal-Anulada a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoLegal ;
+    skos:prefLabel "Anulada"@es ; skos:prefLabel "Annulled"@en ; skos:prefLabel "Anulada"@pt ;
+    skos:definition "La norma ha sido declarada nula por autoridad competente. El alcance temporal y los efectos de la nulidad dependen de la decisión y del régimen jurídico aplicable."@es .
+arlekov:EstadoLegal-Caduca a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoLegal ;
+    skos:prefLabel "Caduca / agotada"@es ; skos:prefLabel "Expired"@en ; skos:prefLabel "Caduca / esgotada"@pt ;
+    skos:definition "La norma ha agotado su objeto o ha vencido el plazo para el que fue dictada."@es .
+arlekov:EstadoLegal-PendienteDeVigencia a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoLegal ;
+    skos:prefLabel "Pendiente de entrada en vigencia"@es ; skos:prefLabel "Not yet in force"@en ; skos:prefLabel "Pendente de entrada em vigor"@pt ;
+    skos:definition "La norma ha sido aprobada o dictada, pero su entrada en vigencia está diferida o sujeta a una condición futura."@es .
+
+# ---- 5.6 Tipos de versión -------------------------------------------
+
+arlekov:EsquemaTipoVersion a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de versión"@es ; skos:prefLabel "Version kinds"@en ; skos:prefLabel "Tipos de versão"@pt .
+
+arlekov:TipoVersion-Original a skos:Concept ; skos:inScheme arlekov:EsquemaTipoVersion ;
+    skos:prefLabel "Original"@es ; skos:prefLabel "Original"@en ; skos:prefLabel "Original"@pt .
+arlekov:TipoVersion-Modificada a skos:Concept ; skos:inScheme arlekov:EsquemaTipoVersion ;
+    skos:prefLabel "Modificada"@es ; skos:prefLabel "Amended"@en ; skos:prefLabel "Modificada"@pt .
+arlekov:TipoVersion-Corregida a skos:Concept ; skos:inScheme arlekov:EsquemaTipoVersion ;
+    skos:prefLabel "Corregida"@es ; skos:prefLabel "Corrected"@en ; skos:prefLabel "Corrigida"@pt .
+arlekov:TipoVersion-ConsolidadaOficial a skos:Concept ; skos:inScheme arlekov:EsquemaTipoVersion ;
+    skos:prefLabel "Texto ordenado oficial"@es ; skos:prefLabel "Official consolidated text"@en ; skos:prefLabel "Texto consolidado oficial"@pt .
+arlekov:TipoVersion-ConsolidadaNoOficial a skos:Concept ; skos:inScheme arlekov:EsquemaTipoVersion ;
+    skos:prefLabel "Texto actualizado no oficial"@es ; skos:prefLabel "Non-authoritative consolidated text"@en ; skos:prefLabel "Texto atualizado não oficial"@pt .
+
+# ---- 5.7 Niveles de jurisdicción y verificación ----------------------
+
+arlekov:EsquemaNivelJurisdiccion a skos:ConceptScheme ;
+    skos:prefLabel "Niveles de jurisdicción"@es ; skos:prefLabel "Jurisdiction levels"@en ; skos:prefLabel "Níveis de jurisdição"@pt .
+
+arlekov:NivelJurisdiccion-Nacional a skos:Concept ; skos:inScheme arlekov:EsquemaNivelJurisdiccion ;
+    skos:prefLabel "Nacional"@es ; skos:prefLabel "National"@en ; skos:prefLabel "Nacional"@pt .
+arlekov:NivelJurisdiccion-Provincial a skos:Concept ; skos:inScheme arlekov:EsquemaNivelJurisdiccion ;
+    skos:prefLabel "Provincial"@es ; skos:prefLabel "Provincial"@en ; skos:prefLabel "Provincial"@pt .
+arlekov:NivelJurisdiccion-CiudadAutonoma a skos:Concept ; skos:inScheme arlekov:EsquemaNivelJurisdiccion ;
+    skos:prefLabel "Ciudad Autónoma"@es ; skos:prefLabel "Autonomous City"@en ; skos:prefLabel "Cidade Autônoma"@pt .
+arlekov:NivelJurisdiccion-Municipal a skos:Concept ; skos:inScheme arlekov:EsquemaNivelJurisdiccion ;
+    skos:prefLabel "Municipal"@es ; skos:prefLabel "Municipal"@en ; skos:prefLabel "Municipal"@pt .
+
+arlekov:EsquemaEstadoVerificacion a skos:ConceptScheme ;
+    skos:prefLabel "Estado de verificación"@es ; skos:prefLabel "Verification status"@en ; skos:prefLabel "Estado de verificação"@pt .
+
+arlekov:EstadoVerificacion-FuenteOficial a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoVerificacion ;
+    skos:prefLabel "Fuente oficial"@es ; skos:prefLabel "Official source"@en ; skos:prefLabel "Fonte oficial"@pt .
+arlekov:EstadoVerificacion-VerificadoHumano a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoVerificacion ;
+    skos:prefLabel "Verificado por persona"@es ; skos:prefLabel "Human verified"@en ; skos:prefLabel "Verificado por pessoa"@pt .
+arlekov:EstadoVerificacion-ExtraidoAutomaticamente a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoVerificacion ;
+    skos:prefLabel "Extraído automáticamente"@es ; skos:prefLabel "Automatically extracted"@en ; skos:prefLabel "Extraído automaticamente"@pt .
+arlekov:EstadoVerificacion-NoVerificado a skos:Concept ; skos:inScheme arlekov:EsquemaEstadoVerificacion ;
+    skos:prefLabel "No verificado"@es ; skos:prefLabel "Unverified"@en ; skos:prefLabel "Não verificado"@pt .
+
+# ---- 5.8 Modos de promulgación ---------------------------------------
+
+arlekov:EsquemaModoPromulgacion a skos:ConceptScheme ;
+    skos:prefLabel "Modos de promulgación"@es ; skos:prefLabel "Promulgation modes"@en ; skos:prefLabel "Modos de promulgação"@pt .
+
+arlekov:ModoPromulgacion-Expresa a skos:Concept ; skos:inScheme arlekov:EsquemaModoPromulgacion ;
+    skos:prefLabel "Expresa"@es ; skos:prefLabel "Express"@en ; skos:prefLabel "Expressa"@pt .
+arlekov:ModoPromulgacion-Tacita a skos:Concept ; skos:inScheme arlekov:EsquemaModoPromulgacion ;
+    skos:prefLabel "Tácita"@es ; skos:prefLabel "Tacit"@en ; skos:prefLabel "Tácita"@pt .
+arlekov:ModoPromulgacion-Parcial a skos:Concept ; skos:inScheme arlekov:EsquemaModoPromulgacion ;
+    skos:prefLabel "Parcial"@es ; skos:prefLabel "Partial"@en ; skos:prefLabel "Parcial"@pt .
+
+# ---- 5.9 Unidades territoriales (LISTA TAXATIVA) ---------------------
+
+arlekov:EsquemaUnidadTerritorial a skos:ConceptScheme ;
+    skos:prefLabel "Unidades territoriales"@es ;
+    skos:prefLabel "Territorial units"@en ;
+    skos:prefLabel "Unidades territoriais"@pt ;
+    skos:definition "Lista taxativa de divisiones territoriales de Argentina con fines político-administrativos o judiciales."@es .
+
+arlekov:UnidadTerritorial-Nacion a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Nación"@es ; skos:prefLabel "Nation"@en ; skos:prefLabel "Nação"@pt ;
+    skos:scopeNote "Territorio nacional en su conjunto."@es .
+arlekov:UnidadTerritorial-Provincia a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Provincia"@es ; skos:prefLabel "Province"@en ; skos:prefLabel "Província"@pt ;
+    skos:scopeNote "23 provincias. División de primer orden."@es .
+arlekov:UnidadTerritorial-CiudadAutonoma a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Ciudad Autónoma"@es ; skos:prefLabel "Autonomous City"@en ; skos:prefLabel "Cidade Autônoma"@pt ;
+    skos:scopeNote "Ciudad Autónoma de Buenos Aires. Mismo nivel de autonomía que una provincia (art. 129 CN)."@es .
+arlekov:UnidadTerritorial-Municipio a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Municipio"@es ; skos:prefLabel "Municipality"@en ; skos:prefLabel "Município"@pt ;
+    skos:scopeNote "Entidad de gobierno local. Su denominación y régimen varía según la provincia."@es .
+arlekov:UnidadTerritorial-Departamento a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Departamento"@es ; skos:prefLabel "Department"@en ; skos:prefLabel "Departamento"@pt ;
+    skos:scopeNote "División de segundo orden. En la Provincia de Buenos Aires se denomina Partido. No siempre coincide con los límites municipales."@es .
+arlekov:UnidadTerritorial-Partido a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Partido"@es ; skos:prefLabel "Partido"@en ; skos:prefLabel "Partido"@pt ;
+    skos:scopeNote "Denominación del departamento en la Provincia de Buenos Aires."@es .
+arlekov:UnidadTerritorial-Comuna a skos:Concept ; skos:inScheme arlekov:EsquemaUnidadTerritorial ;
+    skos:prefLabel "Comuna"@es ; skos:prefLabel "Commune"@en ; skos:prefLabel "Comuna"@pt ;
+    skos:scopeNote "División territorial dentro de la Ciudad Autónoma de Buenos Aires (Ley 1777, no aplicada plenamente)."@es .
+
+# ---- 5.10 Ámbitos marítimos (LISTA TAXATIVA) -----------------------
+
+arlekov:EsquemaAmbitoMaritimo a skos:ConceptScheme ;
+    skos:prefLabel "Ámbitos marítimos"@es ;
+    skos:prefLabel "Maritime scopes"@en ;
+    skos:prefLabel "Âmbitos marítimos"@pt ;
+    skos:definition "Categorías de espacios marítimos relevantes para describir el ámbito espacial de normas. Su inclusión no implica que Argentina ejerza soberanía o derechos soberanos sobre todos ellos."@es .
+
+arlekov:AmbitoMaritimo-MarTerritorial a skos:Concept ; skos:inScheme arlekov:EsquemaAmbitoMaritimo ;
+    skos:prefLabel "Mar territorial"@es ; skos:prefLabel "Territorial sea"@en ; skos:prefLabel "Mar territorial"@pt ;
+    skos:scopeNote "Hasta 12 millas marinas desde las líneas de base. Soberanía del Estado ribereño."@es .
+arlekov:AmbitoMaritimo-ZonaContigua a skos:Concept ; skos:inScheme arlekov:EsquemaAmbitoMaritimo ;
+    skos:prefLabel "Zona contigua"@es ; skos:prefLabel "Contiguous zone"@en ; skos:prefLabel "Zona contígua"@pt ;
+    skos:scopeNote "Hasta 24 millas marinas desde las líneas de base."@es .
+arlekov:AmbitoMaritimo-ZonaEconomicaExclusiva a skos:Concept ; skos:inScheme arlekov:EsquemaAmbitoMaritimo ;
+    skos:prefLabel "Zona Económica Exclusiva (ZEE)"@es ; skos:prefLabel "Exclusive Economic Zone (EEZ)"@en ; skos:prefLabel "Zona Econômica Exclusiva (ZEE)"@pt ;
+    skos:scopeNote "Hasta 200 millas marinas. Derechos de soberanía para exploración y explotación de recursos."@es .
+arlekov:AmbitoMaritimo-PlataformaContinental a skos:Concept ; skos:inScheme arlekov:EsquemaAmbitoMaritimo ;
+    skos:prefLabel "Plataforma continental"@es ; skos:prefLabel "Continental shelf"@en ; skos:prefLabel "Plataforma continental"@pt ;
+    skos:scopeNote "Lecho y subsuelo marino más allá del mar territorial, hasta el borde exterior del margen continental o 200 millas."@es .
+arlekov:AmbitoMaritimo-AltaMar a skos:Concept ; skos:inScheme arlekov:EsquemaAmbitoMaritimo ;
+    skos:prefLabel "Alta mar"@es ; skos:prefLabel "High seas"@en ; skos:prefLabel "Alto-mar"@pt ;
+    skos:scopeNote "Partes del mar no incluidas en ZEE, mar territorial, aguas interiores o aguas archipelágicas. Abierta a todos los Estados; no constituye un espacio bajo soberanía argentina."@es .
+
+# ---- 5.11 Tipos de órgano -------------------------------------------
+
+arlekov:EsquemaTipoOrgano a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de órgano"@es ; skos:prefLabel "Body types"@en ; skos:prefLabel "Tipos de órgão"@pt .
+
+arlekov:TipoOrgano-OrganoLegislativo a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Órgano legislativo"@es ; skos:prefLabel "Legislative body"@en ; skos:prefLabel "Órgão legislativo"@pt ;
+    skos:scopeNote "Congreso Nacional (Diputados y Senadores), Legislaturas Provinciales, Concejos Deliberantes. Sancionan leyes u ordenanzas."@es .
+arlekov:TipoOrgano-OrganoEjecutivo a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Órgano ejecutivo"@es ; skos:prefLabel "Executive body"@en ; skos:prefLabel "Órgão executivo"@pt ;
+    skos:scopeNote "Poder Ejecutivo Nacional, gobernadores, intendentes. Promulgan leyes y dictan decretos."@es .
+arlekov:TipoOrgano-OrganismoAutarquico a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo autárquico"@es ; skos:prefLabel "Autarchic body"@en ; skos:prefLabel "Organismo autárquico"@pt .
+arlekov:TipoOrgano-OrganismoDeControl a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo de control"@es ; skos:prefLabel "Control body"@en ; skos:prefLabel "Organismo de controle"@pt .
+arlekov:TipoOrgano-OrganismoRecaudador a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo recaudador"@es ; skos:prefLabel "Tax collection body"@en ; skos:prefLabel "Organismo arrecadador"@pt .
+arlekov:TipoOrgano-BancoCentral a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Banco central"@es ; skos:prefLabel "Central bank"@en ; skos:prefLabel "Banco central"@pt .
+arlekov:TipoOrgano-OrganismoRegistral a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo registral"@es ; skos:prefLabel "Registry body"@en ; skos:prefLabel "Organismo registral"@pt .
+arlekov:TipoOrgano-OrganismoAduanero a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo aduanero"@es ; skos:prefLabel "Customs body"@en ; skos:prefLabel "Organismo aduaneiro"@pt .
+arlekov:TipoOrgano-OrganismoRegulador a skos:Concept ; skos:inScheme arlekov:EsquemaTipoOrgano ;
+    skos:prefLabel "Organismo regulador"@es ; skos:prefLabel "Regulatory body"@en ; skos:prefLabel "Organismo regulador"@pt .
+
+# ---- 5.12 Tipos de sujeto regulado ----------------------------------
+
+arlekov:EsquemaTipoSujeto a skos:ConceptScheme ;
+    skos:prefLabel "Tipos de sujeto regulado"@es ; skos:prefLabel "Regulated subject types"@en ; skos:prefLabel "Tipos de sujeito regulado"@pt .
+
+arlekov:Sujeto-EntidadFinanciera a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Entidad financiera"@es ; skos:prefLabel "Financial institution"@en ; skos:prefLabel "Entidade financeira"@pt .
+arlekov:Sujeto-Contribuyente a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Contribuyente"@es ; skos:prefLabel "Taxpayer"@en ; skos:prefLabel "Contribuinte"@pt .
+arlekov:Sujeto-AgenteDeRetencion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Agente de retención"@es ; skos:prefLabel "Withholding agent"@en ; skos:prefLabel "Agente de retenção"@pt .
+arlekov:Sujeto-AgenteDePercepcion a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Agente de percepción"@es ; skos:prefLabel "Collection agent"@en ; skos:prefLabel "Agente de percepção"@pt .
+arlekov:Sujeto-SociedadInscripta a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Sociedad inscripta"@es ; skos:prefLabel "Registered company"@en ; skos:prefLabel "Sociedade registrada"@pt .
+arlekov:Sujeto-EmisorDeValores a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Emisor de valores"@es ; skos:prefLabel "Securities issuer"@en ; skos:prefLabel "Emissor de valores"@pt .
+arlekov:Sujeto-Obligado a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Sujeto obligado"@es ; skos:prefLabel "Obliged subject"@en ; skos:prefLabel "Sujeito obrigado"@pt .
+arlekov:Sujeto-PersonaHumana a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Persona humana"@es ; skos:prefLabel "Natural person"@en ; skos:prefLabel "Pessoa física"@pt .
+arlekov:Sujeto-PersonaJuridica a skos:Concept ; skos:inScheme arlekov:EsquemaTipoSujeto ;
+    skos:prefLabel "Persona jurídica"@es ; skos:prefLabel "Legal entity"@en ; skos:prefLabel "Pessoa jurídica"@pt .
+
+# ---- 5.13 Alcance de la norma ---------------------------------------
+
+arlekov:EsquemaAlcanceNorma a skos:ConceptScheme ;
+    skos:prefLabel "Alcance de la norma"@es ; skos:prefLabel "Norm scope"@en ; skos:prefLabel "Alcance da norma"@pt .
+
+arlekov:Alcance-General a skos:Concept ; skos:inScheme arlekov:EsquemaAlcanceNorma ;
+    skos:prefLabel "General"@es ; skos:prefLabel "General"@en ; skos:prefLabel "Geral"@pt .
+arlekov:Alcance-Particular a skos:Concept ; skos:inScheme arlekov:EsquemaAlcanceNorma ;
+    skos:prefLabel "Particular"@es ; skos:prefLabel "Particular"@en ; skos:prefLabel "Particular"@pt .
+arlekov:Alcance-Mixto a skos:Concept ; skos:inScheme arlekov:EsquemaAlcanceNorma ;
+    skos:prefLabel "Mixto"@es ; skos:prefLabel "Mixed"@en ; skos:prefLabel "Misto"@pt .
+
+# ---- 5.14 Fechas aplicables a cada tipo de norma ---------------------
+
+arlekov:TipoNorma-Constitucion arleko:fechaRequerida arleko:fechaSancion ;
+    arleko:fechaAplicable arleko:fechaSancion, arleko:fechaPromulgada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-TratadoDDHH arleko:fechaRequerida arleko:fechaFirmaTratado ;
+    arleko:fechaAplicable arleko:fechaFirmaTratado, arleko:fechaRatificacion, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-TratadoIntegracion arleko:fechaRequerida arleko:fechaFirmaTratado ;
+    arleko:fechaAplicable arleko:fechaFirmaTratado, arleko:fechaRatificacion, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Tratado arleko:fechaRequerida arleko:fechaFirmaTratado ;
+    arleko:fechaAplicable arleko:fechaFirmaTratado, arleko:fechaRatificacion, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Ley arleko:fechaRequerida arleko:fechaSancion, arleko:fechaPromulgada ;
+    arleko:fechaAplicable arleko:fechaSancion, arleko:fechaPromulgada, arleko:fechaVeto,
+        arleko:fechaPublicacion, arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Codigo arleko:fechaRequerida arleko:fechaSancion, arleko:fechaPromulgada ;
+    arleko:fechaAplicable arleko:fechaSancion, arleko:fechaPromulgada, arleko:fechaVeto,
+        arleko:fechaPublicacion, arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DecretoLey arleko:fechaRequerida arleko:fechaSancion, arleko:fechaPromulgada ;
+    arleko:fechaAplicable arleko:fechaSancion, arleko:fechaPromulgada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Ordenanza arleko:fechaRequerida arleko:fechaSancion, arleko:fechaPromulgada ;
+    arleko:fechaAplicable arleko:fechaSancion, arleko:fechaPromulgada, arleko:fechaVeto,
+        arleko:fechaPublicacion, arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DNU arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DecretoDelegado arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Decreto arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DecretoReglamentario arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DecretoAutonomo arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Resolucion arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-ResolucionConjunta arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-ResolucionGeneral arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-ResolucionGeneralConjunta arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Circular arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Comunicacion arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-DecisionAdministrativa arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+arlekov:TipoNorma-Disposicion arleko:fechaRequerida arleko:fechaDictada ;
+    arleko:fechaAplicable arleko:fechaDictada, arleko:fechaPublicacion,
+        arleko:fechaEntradaVigencia, arleko:fechaCeseVigencia .
+
+# ---- 5.15 Permisos de modificación -----------------------------------
+
+arlekov:TipoNorma-Constitucion arleko:puedeModificarTipoNorma arlekov:TipoNorma-Constitucion .
+arlekov:TipoNorma-TratadoDDHH arleko:puedeModificarTipoNorma arlekov:TipoNorma-TratadoDDHH .
+arlekov:TipoNorma-TratadoIntegracion arleko:puedeModificarTipoNorma arlekov:TipoNorma-TratadoIntegracion .
+arlekov:TipoNorma-Tratado arleko:puedeModificarTipoNorma arlekov:TipoNorma-Tratado .
+
+arlekov:TipoNorma-Ley arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Ley, arlekov:TipoNorma-Codigo, arlekov:TipoNorma-DecretoLey,
+        arlekov:TipoNorma-DNU, arlekov:TipoNorma-DecretoDelegado, arlekov:TipoNorma-Decreto,
+        arlekov:TipoNorma-DecretoReglamentario, arlekov:TipoNorma-DecretoAutonomo,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-Codigo arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Ley, arlekov:TipoNorma-Codigo, arlekov:TipoNorma-DecretoLey,
+        arlekov:TipoNorma-DNU, arlekov:TipoNorma-DecretoDelegado, arlekov:TipoNorma-Decreto,
+        arlekov:TipoNorma-DecretoReglamentario, arlekov:TipoNorma-DecretoAutonomo,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-DecretoLey arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Ley, arlekov:TipoNorma-Codigo, arlekov:TipoNorma-DecretoLey,
+        arlekov:TipoNorma-DNU, arlekov:TipoNorma-DecretoDelegado, arlekov:TipoNorma-Decreto,
+        arlekov:TipoNorma-DecretoReglamentario, arlekov:TipoNorma-DecretoAutonomo,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-Ordenanza arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Ordenanza, arlekov:TipoNorma-Decreto,
+        arlekov:TipoNorma-DecretoReglamentario, arlekov:TipoNorma-DecretoAutonomo,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-DNU arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-DNU, arlekov:TipoNorma-Decreto, arlekov:TipoNorma-DecretoReglamentario,
+        arlekov:TipoNorma-DecretoAutonomo, arlekov:TipoNorma-Resolucion,
+        arlekov:TipoNorma-ResolucionConjunta, arlekov:TipoNorma-ResolucionGeneral,
+        arlekov:TipoNorma-ResolucionGeneralConjunta, arlekov:TipoNorma-Circular,
+        arlekov:TipoNorma-Comunicacion, arlekov:TipoNorma-DecisionAdministrativa,
+        arlekov:TipoNorma-Disposicion ;
+    arleko:puedeModificarTipoNormaCondicional
+        arlekov:TipoNorma-Ley, arlekov:TipoNorma-Codigo, arlekov:TipoNorma-DecretoLey,
+        arlekov:TipoNorma-DecretoDelegado .
+
+arlekov:TipoNorma-DecretoDelegado arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-DecretoDelegado, arlekov:TipoNorma-Decreto,
+        arlekov:TipoNorma-DecretoReglamentario, arlekov:TipoNorma-DecretoAutonomo,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Disposicion ;
+    arleko:puedeModificarTipoNormaCondicional
+        arlekov:TipoNorma-Ley, arlekov:TipoNorma-Codigo, arlekov:TipoNorma-DecretoLey .
+
+arlekov:TipoNorma-Decreto arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Decreto, arlekov:TipoNorma-DecretoReglamentario,
+        arlekov:TipoNorma-DecretoAutonomo, arlekov:TipoNorma-Resolucion,
+        arlekov:TipoNorma-ResolucionConjunta, arlekov:TipoNorma-ResolucionGeneral,
+        arlekov:TipoNorma-ResolucionGeneralConjunta, arlekov:TipoNorma-Circular,
+        arlekov:TipoNorma-Comunicacion, arlekov:TipoNorma-DecisionAdministrativa,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-DecretoReglamentario arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Decreto, arlekov:TipoNorma-DecretoReglamentario,
+        arlekov:TipoNorma-DecretoAutonomo, arlekov:TipoNorma-Resolucion,
+        arlekov:TipoNorma-ResolucionConjunta, arlekov:TipoNorma-ResolucionGeneral,
+        arlekov:TipoNorma-ResolucionGeneralConjunta, arlekov:TipoNorma-Circular,
+        arlekov:TipoNorma-Comunicacion, arlekov:TipoNorma-DecisionAdministrativa,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-DecretoAutonomo arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Decreto, arlekov:TipoNorma-DecretoReglamentario,
+        arlekov:TipoNorma-DecretoAutonomo, arlekov:TipoNorma-Resolucion,
+        arlekov:TipoNorma-ResolucionConjunta, arlekov:TipoNorma-ResolucionGeneral,
+        arlekov:TipoNorma-ResolucionGeneralConjunta, arlekov:TipoNorma-Circular,
+        arlekov:TipoNorma-Comunicacion, arlekov:TipoNorma-DecisionAdministrativa,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-Resolucion arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-ResolucionConjunta arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-ResolucionConjunta,
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-ResolucionGeneral arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-Disposicion,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion .
+
+arlekov:TipoNorma-ResolucionGeneralConjunta arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-ResolucionGeneral, arlekov:TipoNorma-ResolucionGeneralConjunta,
+        arlekov:TipoNorma-Resolucion, arlekov:TipoNorma-Disposicion,
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion .
+
+arlekov:TipoNorma-Circular arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Circular, arlekov:TipoNorma-Comunicacion,
+        arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-Comunicacion arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-Comunicacion .
+
+arlekov:TipoNorma-DecisionAdministrativa arleko:puedeModificarTipoNorma
+        arlekov:TipoNorma-DecisionAdministrativa, arlekov:TipoNorma-Resolucion,
+        arlekov:TipoNorma-ResolucionConjunta, arlekov:TipoNorma-ResolucionGeneral,
+        arlekov:TipoNorma-ResolucionGeneralConjunta, arlekov:TipoNorma-Circular,
+        arlekov:TipoNorma-Comunicacion, arlekov:TipoNorma-Disposicion .
+
+arlekov:TipoNorma-Disposicion arleko:puedeModificarTipoNorma arlekov:TipoNorma-Disposicion .

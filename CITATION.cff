@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "AR-LEKO: Argentine Legal Knowledge Ontology"
+message: "Si usás esta ontología, citála con estos datos."
+type: dataset
+authors:
+  - alias: ar-leko
+    website: "https://github.com/ar-leko"
+version: 1.3.0
+date-released: 2026-11-20
+license: CC-BY-4.0
+url: "https://w3id.org/arleko"
+repository-code: "https://github.com/ar-leko/ar-leko-ontology"
+identifiers:
+  - type: url
+    value: "https://w3id.org/arleko/1.3.0"
+    description: "IRI de la versión 1.3.0"
+abstract: "Ontología OWL 2 para representar normas jurídicas argentinas, su estructura, sus versiones temporales, sus modificaciones y su contexto institucional y territorial."
